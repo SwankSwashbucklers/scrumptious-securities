@@ -1,4 +1,7 @@
 #!/usr/bin/perl
+use strict;
+use warnings;
+use JSON qw( decode_json );
 use LWP::UserAgent;
 
 sub build_endpoint {
@@ -30,15 +33,15 @@ sub build_endpoint {
 	return sprintf("%s?q=%s&format=%s&diagnostics=%s&env=%s&callback=%s", @_); 
 }
 
-my $ua = LWP::UserAgent->new;
-my $query    = "SELECT Bid, Ask FROM yahoo.finance.quotes WHERE symbol=\"TSLA\"";
+my $ua       = LWP::UserAgent->new;
+my $query    = "SELECT Bid, Ask, LastTradePriceOnly FROM yahoo.finance.quotes WHERE symbol=\"TSLA\"";
 my $env      = "store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 my $endpoint = build_endpoint( "https://query.yahooapis.com/v1/public/yql", 
 							   $query,   #YQL query
 							   "json",   #format of response
 							   "false",  #boolean to include diagnostic info
-							   $env,     #no idea
-							   "" );     #probably callback function?
+							   $env,     #
+							   "" );     #callback
 
 # set custom HTTP request header fields
 my $req = HTTP::Request->new(GET => $endpoint);
@@ -47,10 +50,12 @@ $req->header('x-auth-token' => 'kfksj48sdfj4jd9d');
 
 my $resp = $ua->request($req);
 if ($resp->is_success) {
-    my $message = $resp->decoded_content;
-    print "Received reply: $message\n";
-}
+    my $response = decode_json($resp->decoded_content);
+    my $quote = $response->{'query'}{'results'}{'quote'};
+	print "Bid: ". $quote->{'Bid'}."\n";
+	print "Ask: ". $quote->{'Ask'}."\n";  
+} 
 else {
     print "HTTP GET error code: ", $resp->code, "\n";
-    print "HTTP GET error message: ", $resp->message, "\n";
+    print "HTTP GET error message: ", $resp->message, "\n"; 
 }
