@@ -3,6 +3,8 @@ use strict;
 use warnings;
 use JSON qw( decode_json );
 use LWP::UserAgent;
+use Chart::Graph::Gnuplot qw(gnuplot);
+
 
 sub build_endpoint {
 	$_[1] =~ s/[\%]/%25/g; #this must be done first
@@ -33,6 +35,28 @@ sub build_endpoint {
 	return sprintf("%s?q=%s&format=%s&diagnostics=%s&env=%s&callback=%s", @_); 
 }
 
+sub make_request {
+	# set custom HTTP request header fields
+	my $req = HTTP::Request->new(GET => $_[0]);
+	$req->header('content-type' => 'application/json');
+	$req->header('x-auth-token' => 'kfksj48sdfj4jd9d');
+
+	my $resp = $ua->request($req);
+	if ($resp->is_success) {
+	    $response = decode_json($resp->decoded_content);
+	    $quote = $response->{'query'}{'results'}{'quote'};
+	    $return{'Bid'} = $quote->{'Bid'};
+	    $return{'Ask'} = $quote->{'Ask'};
+	    $return{'Time'} = $response->{'query'}{'created'};
+	    return %return;
+	} 
+	else {
+	    print "HTTP GET error code: ", $resp->code, "\n";
+	    print "HTTP GET error message: ", $resp->message, "\n";
+	    exit 1; 
+	}
+}
+
 my $ua       = LWP::UserAgent->new;
 my $query    = "SELECT Bid, Ask, LastTradePriceOnly FROM yahoo.finance.quotes WHERE symbol=\"TSLA\"";
 my $env      = "store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
@@ -43,19 +67,16 @@ my $endpoint = build_endpoint( "https://query.yahooapis.com/v1/public/yql",
 							   $env,     #
 							   "" );     #callback
 
-# set custom HTTP request header fields
-my $req = HTTP::Request->new(GET => $endpoint);
-$req->header('content-type' => 'application/json');
-$req->header('x-auth-token' => 'kfksj48sdfj4jd9d');
+my @x_column;
+my @y_column;
 
-my $resp = $ua->request($req);
-if ($resp->is_success) {
-    my $response = decode_json($resp->decoded_content);
-    my $quote = $response->{'query'}{'results'}{'quote'};
-	print "Bid: ". $quote->{'Bid'}."\n";
-	print "Ask: ". $quote->{'Ask'}."\n";  
-} 
-else {
-    print "HTTP GET error code: ", $resp->code, "\n";
-    print "HTTP GET error message: ", $resp->message, "\n"; 
+for ( $i=0; $i<1; $i++ ) {
+	%response = make_request($endpoint);
+	$x_column[$i] = $response{'Time'};
+	$y_column[$i] = $response{'Bid'};
+
+	gnuplot({'title' => 'foo'},
+          [@x_column, @y_column ]);
 }
+
+exit 0;
