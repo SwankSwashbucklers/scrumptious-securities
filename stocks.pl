@@ -1,25 +1,5 @@
 #!/usr/bin/perl
-
-=begin 
-https://query.yahooapis.com/v1/public/yql?
-q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%3D%22TSLA%22&
-format=json&
-diagnostics=true&
-env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&
-callback=
-=cut
-
-
 use LWP::UserAgent;
-
-my $ua = LWP::UserAgent->new;
-my $endpoint_url = "https://query.yahooapis.com/v1/public/yql";
-my $query        = "SELECT Bid, Ask FROM yahoo.finance.quotes WHERE symbol=\"TSLA\"";
-my $format       = "json";
-my $diagnostics  = "false";
-my $env          = "store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
-my $callback     = "";
-
 
 sub build_endpoint {
 	$_[1] =~ s/[\%]/%25/g; #this must be done first
@@ -50,7 +30,15 @@ sub build_endpoint {
 	return sprintf("%s?q=%s&format=%s&diagnostics=%s&env=%s&callback=%s", @_); 
 }
 
-my $endpoint = build_endpoint($endpoint_url, $query, $format, $diagnostics, $env, $callback);
+my $ua = LWP::UserAgent->new;
+my $query    = "SELECT Bid, Ask FROM yahoo.finance.quotes WHERE symbol=\"TSLA\"";
+my $env      = "store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
+my $endpoint = build_endpoint( "https://query.yahooapis.com/v1/public/yql", 
+							   $query,   #YQL query
+							   "json",   #format of response
+							   "false",  #boolean to include diagnostic info
+							   $env,     #no idea
+							   "" );     #probably callback function?
 
 # set custom HTTP request header fields
 my $req = HTTP::Request->new(GET => $endpoint);
