@@ -3,8 +3,10 @@ use strict;
 use warnings;
 use JSON qw( decode_json );
 use LWP::UserAgent;
-use Chart::Graph::Gnuplot qw(gnuplot);
+use Term::ANSIScreen qw( cls );
+#use Chart::Graph::Gnuplot qw(gnuplot);
 
+system("cls");
 
 sub build_endpoint {
 	$_[1] =~ s/[\%]/%25/g; #this must be done first
@@ -41,13 +43,14 @@ sub make_request {
 	$req->header('content-type' => 'application/json');
 	$req->header('x-auth-token' => 'kfksj48sdfj4jd9d');
 
-	my $resp = $ua->request($req);
+	my $resp = $_[1]->request($req);
 	if ($resp->is_success) {
-	    $response = decode_json($resp->decoded_content);
-	    $quote = $response->{'query'}{'results'}{'quote'};
-	    $return{'Bid'} = $quote->{'Bid'};
-	    $return{'Ask'} = $quote->{'Ask'};
-	    $return{'Time'} = $response->{'query'}{'created'};
+	    my $response = decode_json($resp->decoded_content);
+	    my $quote = $response->{'query'}{'results'}{'quote'};
+	    my %return = ('Name' => $quote->{'Name'},
+	    			  'Bid'  => $quote->{'Bid'}, 
+	    			  'Ask'  => $quote->{'Ask'}, 
+	    			  'Time' => $response->{'query'}{'created'});
 	    return %return;
 	} 
 	else {
@@ -58,7 +61,7 @@ sub make_request {
 }
 
 my $ua       = LWP::UserAgent->new;
-my $query    = "SELECT Bid, Ask, LastTradePriceOnly FROM yahoo.finance.quotes WHERE symbol=\"TSLA\"";
+my $query    = "SELECT Name, Bid, Ask, LastTradePriceOnly FROM yahoo.finance.quotes WHERE symbol=\"TSLA\"";
 my $env      = "store%3A%2F%2Fdatatables.org%2Falltableswithkeys";
 my $endpoint = build_endpoint( "https://query.yahooapis.com/v1/public/yql", 
 							   $query,   #YQL query
@@ -67,6 +70,8 @@ my $endpoint = build_endpoint( "https://query.yahooapis.com/v1/public/yql",
 							   $env,     #
 							   "" );     #callback
 
+
+=begin comment
 my @x_column;
 my @y_column;
 
@@ -77,6 +82,23 @@ for ( $i=0; $i<1; $i++ ) {
 
 	gnuplot({'title' => 'foo'},
           [@x_column, @y_column ]);
+}
+=cut
+
+$| = 1;
+my %response = make_request($endpoint, $ua);
+print $response{'Name'}."\n";
+print "Bid : ".$response{'Bid'}."\n";
+print "Ask : ".$response{'Ask'};
+
+for ( ; ; ) {
+	sleep 10;
+	system("cls"); #cls();
+
+	%response = make_request($endpoint, $ua);
+	print $response{'Name'}."\n";
+	print "Bid : ".$response{'Bid'}."\n";
+	print "Ask : ".$response{'Ask'};
 }
 
 exit 0;
