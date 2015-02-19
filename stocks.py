@@ -2,6 +2,9 @@ import urllib, urllib2
 import json, re, time, os
 os.system('cls')
 
+MAX_LENGTH = 200
+WATCHLIST  = ['TSLA', 'GOOGL', 'GOOG']
+
 
 class Stock:
 	data     = {}
@@ -23,12 +26,23 @@ class Stock:
 		self.bid  = response['query']['results']['quote']['Bid']
 		self.ask  = response['query']['results']['quote']['Ask']
 
-tesla = Stock('TSLA');
+
+stocks = []
+for ticker in WATCHLIST:
+	stocks.append(Stock(ticker))
 
 while (1):
-	tesla.refresh_data()
+	line1 = ""
+	line2 = ""
+	line3 = ""
+	for stock in stocks:
+		stock.refresh_data()
+		line1 = line1 + " " + stock.name
+		line2 = line2 + " Bid : " + stock.bid
+		line3 = line3 + " Ask : " + stock.ask
+
 	os.system('cls')
-	print tesla.name
-	print "Bid : " + tesla.bid
-	print "Ask : " + tesla.ask
+	print line1
+	print line2
+	print line3
 	time.sleep(1)
