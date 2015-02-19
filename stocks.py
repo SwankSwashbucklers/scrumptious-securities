@@ -1,4 +1,4 @@
-import urllib, urllib2
+import urllib, urllib2, httplib
 import json, re, math
 import time, os
 import sys, signal
@@ -24,6 +24,9 @@ class Stock:
 
 	def __init__(self, ticker):
 		self.ticker              = ticker
+		self.name                = ""
+		self.bid                 = ""
+		self.ask                 = ""
 		self.data['q']           = re.sub(r'\{\}', ticker, self.sql_stmt)
 		self.data['format']      = 'json'
 		self.data['diagnostics'] = 'false'
@@ -33,11 +36,23 @@ class Stock:
 		self.refresh_data()
 
 	def refresh_data(self):
-		response  = json.load(urllib2.urlopen(self.full_url))
-		# TODO: add error checking
-		self.name = response['query']['results']['quote']['Name']
-		self.bid  = response['query']['results']['quote']['Bid']
-		self.ask  = response['query']['results']['quote']['Ask']
+		try:
+			response  = json.load(urllib2.urlopen(self.full_url))
+			self.name = response['query']['results']['quote']['Name']
+			self.bid  = response['query']['results']['quote']['Bid']
+			self.ask  = response['query']['results']['quote']['Ask']
+		except urllib2.HTTPError, e:
+			print "HTTPError = " + str(e.code)
+			sys.exit(0)
+		except urllib2.URLError, e:
+			print "URLError = " + str(e.reason)
+			sys.exit(0)
+		except httplib.HTTPException, e:
+			print "HTTPException"
+			sys.exit(0)
+		except Exception:
+			print "Unknown exception"
+			sys.exit(0)
 
 	def get_name_string(self):
 		return self.name + ' (' + self.ticker + ')'
