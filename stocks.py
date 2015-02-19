@@ -1,6 +1,7 @@
 import urllib, urllib2
 import json, re, math
 import time, os
+import sys, signal
 os.system('cls' if os.name == 'nt' else 'clear')
 
 MAX_LENGTH   = 80
@@ -8,6 +9,12 @@ H_BUFFER     = 2
 V_BUFFER     = 4
 REFRESH_RATE = 2
 WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG', 'AAPL', 'OMCL', 'AAL', 'GPRO']
+
+def signal_handler(signal, frame):
+        print "\nScript terminated by user"
+        sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 class Stock:
