@@ -4,9 +4,10 @@ import time, os
 os.system('cls')
 
 MAX_LENGTH   = 80
-BUFFER       = 5
+H_BUFFER     = 2
+V_BUFFER     = 4
 REFRESH_RATE = 2
-WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG']
+WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG', 'AAPL', 'OMCL', 'AAL', 'GPRO']
 
 
 class Stock:
@@ -27,9 +28,18 @@ class Stock:
 	def refresh_data(self):
 		response  = json.load(urllib2.urlopen(self.full_url))
 		# TODO: add error checking
-		self.name = response['query']['results']['quote']['Name'] + ' (' + self.ticker + ')'
+		self.name = response['query']['results']['quote']['Name']
 		self.bid  = response['query']['results']['quote']['Bid']
 		self.ask  = response['query']['results']['quote']['Ask']
+
+	def get_name_string(self):
+		return self.name + ' (' + self.ticker + ')'
+
+	def get_bid_string(self):
+		return "Bid : " + self.bid
+
+	def get_ask_string(self):
+		return "Ask : " + self.ask
 
 
 stocks = []
@@ -42,39 +52,40 @@ while (1):
 
 	for stock in stocks:
 		stock.refresh_data()
-		if (longest < len(stock.name)): 
-			longest = len(stock.name)
-		if (longest < len("Bid : " + stock.bid)): 
-			longest = len("Bid : " + stock.bid)
-		if (longest < len("Ask : " + stock.ask)): 
-			longest = len("Ask : " + stock.ask)
+		if (longest < len(stock.get_name_string())): 
+			longest = len(stock.get_name_string())
+		if (longest < len(stock.get_bid_string())): 
+			longest = len(stock.get_bid_string())
+		if (longest < len(stock.get_ask_string())): 
+			longest = len(stock.get_ask_string())
 
-	columns = int(math.floor(MAX_LENGTH/float(longest+BUFFER)))
-	if ((columns*longest+(columns-1)*BUFFER) < MAX_LENGTH): 
-		columns = columns + 1
+	columns = int(math.floor(MAX_LENGTH/float(longest+H_BUFFER)))
+	#if ((columns*longest+(columns-1)*H_BUFFER) < MAX_LENGTH): 
+	#	columns = columns + 1
 	rows    = int(math.ceil(len(stocks)/float(columns)))
 
 	for r in range(0, rows):
 		for x in range(0, 3):
 			output.append("")
 		for c in range(0, columns):
-			if ((r+1)*(c+1) > len(stocks)):
+			if (c+(r*columns) >= len(stocks)):
 				break
-			name_string = stocks[(r+1)*(c+1)-1].name
-			bid_string  = "Bid : " + stocks[(r+1)*(c+1)-1].bid
-			ask_string  = "Ask : " + stocks[(r+1)*(c+1)-1].ask
-			output[((1)*(r+1))-1] += name_string
-			output[((2)*(r+1))-1] += bid_string
-			output[((3)*(r+1))-1] += ask_string
+			stock = stocks[c+(r*columns)]
+			output[(0)+(r*3)] += stock.get_name_string()
+			output[(1)+(r*3)] += stock.get_bid_string()
+			output[(2)+(r*3)] += stock.get_ask_string()
 			if not (c==(columns-1)):
-				for x in range(0, (longest-len(name_string))+BUFFER):
-					output[((1)*(r+1))-1] += " "
-				for x in range(0, (longest-len(bid_string))+BUFFER):
-					output[((2)*(r+1))-1] += " "
-				for x in range(0, (longest-len(ask_string))+BUFFER):
-					output[((3)*(r+1))-1] += " "
+				for x in range(0, (longest-len(stock.get_name_string()))+H_BUFFER):
+					output[(0)+(r*3)] += " "
+				for x in range(0, (longest-len(stock.get_bid_string()))+H_BUFFER):
+					output[(1)+(r*3)] += " "
+				for x in range(0, (longest-len(stock.get_ask_string()))+H_BUFFER):
+					output[(2)+(r*3)] += " "
 
 	os.system('cls')
-	for line in output:
-		print line
+	for l in range(0, len(output)):
+		if (l % 3 == 0) and not (l == 0):
+			for x in range(0, V_BUFFER):
+				print ""
+		print output[l]
 	time.sleep(REFRESH_RATE)
