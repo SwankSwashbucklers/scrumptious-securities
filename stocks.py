@@ -1,7 +1,7 @@
 import urllib, urllib2
 import json, re, math
 import time, os
-os.system('cls')
+os.system('cls' if os.name == 'nt' else 'clear')
 
 MAX_LENGTH   = 80
 H_BUFFER     = 2
@@ -82,7 +82,7 @@ while (1):
 				for x in range(0, (longest-len(stock.get_ask_string()))+H_BUFFER):
 					output[(2)+(r*3)] += " "
 
-	os.system('cls')
+	os.system('cls' if os.name == 'nt' else 'clear')
 	for l in range(0, len(output)):
 		if (l % 3 == 0) and not (l == 0):
 			for x in range(0, V_BUFFER):
