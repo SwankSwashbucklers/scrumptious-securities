@@ -3,11 +3,10 @@ import json, re
 
 class Stock(object):
 	stock_data = {}
-	req_data   = {}
-	url        = 'https://query.yahooapis.com/v1/public/yql'
-	sql_stmt   = 'SELECT {f} FROM yahoo.finance.quotes WHERE symbol="{t}"'
+	endpoint   = ""
 
 	def __init__(self, fields, ticker):
+		self.stock_data['Ticker']  = ticker
 		field_string = ""
 		for f in range(0, len(fields)):
 			self.stock_data[fields[f]] = ""
@@ -15,19 +14,20 @@ class Stock(object):
 			if (f < (len(fields)-1)):
 				field_string += ", "
 
-		self.ticker                    = ticker
-		self.req_data['q']             = re.sub(r'\{f\}', field_string,
-										 re.sub(r'\{t\}', ticker, self.sql_stmt))
-		self.req_data['format']        = 'json'
-		self.req_data['diagnostics']   = 'false'
-		self.req_data['env']           = 'store://datatables.org/alltableswithkeys'
-		self.req_data['callback']      = ''
-		self.full_url = self.url + '?' + urllib.urlencode(self.req_data)
+		sql_stmt = 'SELECT {f} FROM yahoo.finance.quotes WHERE symbol="{t}"'
+		req_data                 = {}
+		req_data['q']            = re.sub(r'\{f\}', field_string,
+								   re.sub(r'\{t\}', ticker, sql_stmt))
+		req_data['format']       = 'json'
+		req_data['diagnostics']  = 'false'
+		req_data['env']          = 'store://datatables.org/alltableswithkeys'
+		req_data['callback']     = ''
+		self.endpoint = 'https://query.yahooapis.com/v1/public/yql?' + urllib.urlencode(req_data)
 		self.refresh_data()
 
 	def make_request(self):
 		try:
-			return json.load(urllib2.urlopen(self.full_url))
+			return json.load(urllib2.urlopen(self.endpoint))
 		except urllib2.HTTPError, e:
 			print "HTTPError = " + str(e.code)
 		except urllib2.URLError, e:
@@ -46,6 +46,7 @@ class Stock(object):
 			quote = response['query']['results']['quote']
 		
 		for key in self.stock_data:
+			if key == 'Ticker': continue
 			if quote is None: 
 				self.stock_data[key] = None 
 			else:
@@ -53,9 +54,10 @@ class Stock(object):
 
 
 class TickerStock(Stock):
-	name = ""
-	bid  = ""
-	ask  = ""
+	name   = ""
+	ticker = ""
+	bid    = ""
+	ask    = ""
 
 	def __init__(self, ticker):
 		fields = ['Name', 'Bid', 'Ask']
@@ -65,6 +67,8 @@ class TickerStock(Stock):
 		super(TickerStock, self).refresh_data()
 		if not (self.name):
 			self.name = self.stock_data['Name']
+		if not (self.ticker):
+			self.ticker = self.stock_data['Ticker']
 		self.bid = self.stock_data['Bid']
 		self.ask = self.stock_data['Ask']
 
