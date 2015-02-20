@@ -9,9 +9,9 @@ class Stock(object):
 		data['s'] = ticker.lower()
 		full_url = 'http://finance.yahoo.com/q?' + urllib.urlencode(data)
 		response = urllib2.urlopen(full_url).read()
-		m1 = re.search(r'<span class="time_rtq_ticker"><span[\w\s="]*>[\w\s\.]*', response)
-		m = re.search(r'[0-9\.]*$', str(m1.group()))
-		self.value = float(m.group())
+		self.value = float(
+			str(re.search(r'[0-9\.]*$', 
+			str(re.search(r'<span class="time_rtq_ticker"><span[\w\s="]*>[\w\s\.]*', response).group())).group()))
 
 apple = Stock('AAPL')
 tesla = Stock('TSLA')
