@@ -1,12 +1,13 @@
-from stock import Stock
+from stock import TickerStock
 import math, time, os
 import sys, signal
 
 MAX_LENGTH   = 80
 H_BUFFER     = 2
 V_BUFFER     = 4
-REFRESH_RATE = 2
-WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG', 'AAPL', 'OMCL', 'AAL', 'GPRO']
+REFRESH_RATE = 5
+WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG', 'AAPL', 'OMCL', 'AAL', 'LUV', 'GPRO', 'ERII', 
+				'AMZN', 'NFLX', 'MA', 'GM', 'F', 'HMC', 'HEMP', 'PHOT']
 
 
 def signal_handler(signal, frame):
@@ -19,7 +20,7 @@ signal.signal(signal.SIGINT, signal_handler)
 
 stocks = []
 for ticker in WATCHLIST:
-	stocks.append(Stock(ticker))
+	stocks.append(TickerStock(ticker))
 
 
 while (1):
