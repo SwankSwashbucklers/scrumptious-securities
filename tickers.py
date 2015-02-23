@@ -11,7 +11,7 @@ WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG', 'AAPL', 'OMCL', 'AAL', 'LUV', 'GPRO', '
 
 
 def signal_handler(signal, frame):
-        print "\nScript terminated by user"
+        print u"\nScript terminated by user↑"
         sys.exit(0)
 
 os.system('cls' if os.name == 'nt' else 'clear')
