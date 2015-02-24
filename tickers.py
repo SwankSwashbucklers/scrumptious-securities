@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from stock import TickerStock
 import math, time, os
 import sys, signal
@@ -6,12 +7,14 @@ MAX_LENGTH   = 80
 H_BUFFER     = 2
 V_BUFFER     = 4
 REFRESH_RATE = 5
-WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG', 'AAPL', 'OMCL', 'AAL', 'LUV', 'GPRO', 'ERII', 
-				'AMZN', 'NFLX', 'MA', 'GM', 'F', 'HMC', 'HEMP', 'PHOT']
+WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG', 'AAPL']#, 'OMCL', 'AAL', 'LUV', 'GPRO', 'ERII', 
+				#'AMZN', 'NFLX', 'MA', 'GM', 'F', 'HMC', 'HEMP', 'PHOT']
 
 
 def signal_handler(signal, frame):
-        print u"\nScript terminated by user↑"
+        print "\nScript terminated by user \xCE"
+        print "\x1E"
+        print "\x1F"
         sys.exit(0)
 
 os.system('cls' if os.name == 'nt' else 'clear')
