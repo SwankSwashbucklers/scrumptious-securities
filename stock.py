@@ -144,6 +144,6 @@ class TickerStock(Scraper_Stock, YQL_Stock):
 				dir_string = "\xF9"
 				percent_string = "--.---"
 			value_string = '%.2f' % self.value
-			return " " + value_string + " " + dir_string + " " + percent_string + " %"
-		return " " + "N/A"
+			return "" + value_string + " " + dir_string + " " + percent_string + " %"
+		return "" + "N/A"
 
