@@ -2,6 +2,24 @@
 import urllib, urllib2, httplib
 import json, re
 
+class Stock(object):
+	endpoint = ""
+
+	def make_request(self):
+		try:
+			return urllib2.urlopen(self.endpoint)
+		except urllib2.HTTPError, e:
+			print "HTTPError = " + str(e.code)
+		except urllib2.URLError, e:
+			print "URLError = " + str(e.reason)
+		except httplib.HTTPException, e:
+			print "HTTPException"
+		except Exception:
+			print "Unknown exception"
+		return None
+
+		
+
 class Scraper_Stock(object):
 	scraped_data = {}
 	endpoint     = ""
