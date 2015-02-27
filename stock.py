@@ -18,7 +18,7 @@ class Stock(object):
 			print "Unknown exception"
 		return None
 
-		
+
 
 class Scraper_Stock(object):
 	scraped_data = {}
@@ -139,8 +139,10 @@ class TickerStock(Scraper_Stock, YQL_Stock):
 
 	def refresh_data(self):
 		super(TickerStock, self).refresh_data()
-		self.previous_close = float(self.stock_data['PreviousClose'])
-		self.open_price     = float(self.stock_data['Open'])
+		if not self.stock_data['PreviousClose'] is None:
+			self.previous_close = float(self.stock_data['PreviousClose'])
+		if not  self.stock_data['Open'] is None:
+			self.open_price     = float(self.stock_data['Open'])
 
 	def get_name_string(self):
 		if (self.name):
@@ -162,6 +164,9 @@ class TickerStock(Scraper_Stock, YQL_Stock):
 				dir_string = "\xF9"
 				percent_string = "--.---"
 			value_string = '%.2f' % self.value
-			return "" + value_string + " " + dir_string + " " + percent_string + " %"
+			space = " "
+			for x in range(0, 7-len(value_string)):
+					space += " "
+			return "" + value_string + space + dir_string + " " + percent_string + " %"
 		return "" + "N/A"
 
