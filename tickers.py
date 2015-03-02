@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from stock import TickerStock
 import math, time, os
 import sys, signal
@@ -13,7 +12,7 @@ WATCHLIST    = ['TSLA', 'AAPL', 'GOOGL', 'GOOG', 'OMCL', 'ERII', 'SCTY']
 
 
 def signal_handler(signal, frame):
-        print "\nScript terminated by user"
+        print("\nScript terminated by user")
         sys.exit(0)
 
 os.system('cls' if os.name == 'nt' else 'clear')
@@ -30,7 +29,7 @@ while (1):
 	longest = 0
 
 	for stock in stocks:
-		stock.refresh_value()
+		stock.scraper.refresh_data()
 		if (longest < len(stock.get_name_string())): 
 			longest = len(stock.get_name_string())
 		if (longest < len(stock.get_value_string())): 
@@ -60,6 +59,6 @@ while (1):
 	for l in range(0, len(output)):
 		if (l % 2 == 0) and not (l == 0):
 			for x in range(0, V_BUFFER):
-				print ""
-		print output[l]
+				print()
+		print(output[l])
 	time.sleep(REFRESH_RATE)

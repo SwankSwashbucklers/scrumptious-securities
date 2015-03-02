@@ -1,172 +1,116 @@
-# -*- coding: utf-8 -*-
-import urllib, urllib2, httplib
-import json, re
+import urllib.parse       # Stock
+import urllib.request     #
+import urllib.error       #
+import re                 # Scraper_Stock
+import json               # YQL_Stock
 
 class Stock(object):
-	endpoint = ""
-
-	def make_request(self):
-		try:
-			return urllib2.urlopen(self.endpoint)
-		except urllib2.HTTPError, e:
-			print "HTTPError = " + str(e.code)
-		except urllib2.URLError, e:
-			print "URLError = " + str(e.reason)
-		except httplib.HTTPException, e:
-			print "HTTPException"
-		except Exception:
-			print "Unknown exception"
-		return None
+    def __init__(self, url, **data):
+        super(Stock, self).__init__()
+        self.endpoint = url + '?' + urllib.parse.urlencode(data)
 
 
-
-class Scraper_Stock(object):
-	scraped_data = {}
-	endpoint     = ""
-
-	def __init__(self, ticker):
-		self.setup(ticker)
-
-	def setup(self, ticker):
-		req_data = {}
-		req_data['s'] = ticker.lower()
-		self.endpoint = 'http://finance.yahoo.com/q?' + urllib.urlencode(req_data)
-
-		self.scraped_data['Name']  = ""
-		self.scraped_data['Value'] = 0.0
-		self.refresh_value()
-
-	def make_request(self):
-		try:
-			return urllib2.urlopen(self.endpoint).read()
-		except urllib2.HTTPError, e:
-			print "HTTPError = " + str(e.code)
-		except urllib2.URLError, e:
-			print "URLError = " + str(e.reason)
-		except httplib.HTTPException, e:
-			print "HTTPException"
-		except Exception:
-			print "Unknown exception"
-		return None
-
-	def refresh_value(self): #TODO: add checking if regex cant find match
-		response = self.make_request()
-		if response is None:
-			return
-
-		self.scraped_data['Value'] = float(
-			str(re.search(r'[0-9\.]*$', 
-			str(re.search(r'<span[\w\s="]*class="time_rtq_ticker[\w\s="]*><span[\w\s="]*>[\w\s\.]*', response).group())).group()))
-
-		if not (self.scraped_data['Name']):
-			self.scraped_data['Name'] = str(re.search(r'(?<=: Summary for ).*(?=-)', 
-				str(re.search(r'(?<=<title>).*(?=<\/title>)', response).group())).group())
+    def make_request(self): #TODO: log rather than print
+        try:
+            return urllib.request.urlopen(self.endpoint)
+        except urllib.error.URLError as e:
+            print("URLError = ", str(e.reason))
+        except urllib.error.HTTPError as e:
+            print("HTTPError = ", str(e.code))
+        except Exception:
+            print("Unknown exception")
+        return None
 
 
 
-class YQL_Stock(object):
-	stock_data     = {}
-	yql_endpoint   = ""
+class Scraper_Stock(Stock):
+    def __init__(self, ticker):
+        self.data = {}
+        self.data['Name']  = ""
+        self.data['Value'] = 0.0
+        
+        super(Scraper_Stock, self).__init__(
+            "http://finance.yahoo.com/q", s = ticker.lower())
+        self.refresh_data()
 
-	def __init__(self, fields, ticker):
-		self.yql_setup(fields, ticker)
 
-	def yql_setup(self, fields, ticker):
-		field_string = ""
-		for f in range(0, len(fields)):
-			self.stock_data[fields[f]] = None
-			field_string += fields[f]
-			if (f < (len(fields)-1)):
-				field_string += ", "
+    def refresh_data(self): #TODO: add checking if regex cant find match
+        resp = super(Scraper_Stock, self).make_request()
+        if not resp is None:
+            response = str(resp.read())
+            
+            self.data['Value'] = float(
+                str(re.search(r'[0-9\.]*$', 
+                str(re.search(r'<span[\w\s="]*class="time_rtq_ticker[\w\s="]*><span[\w\s="]*>[\w\s\.]*', 
+                    response).group())).group()))
 
-		sql_stmt = 'SELECT {f} FROM yahoo.finance.quotes WHERE symbol="{t}"'
-		req_data                 = {}
-		req_data['q']            = re.sub(r'\{f\}', field_string,
-								   re.sub(r'\{t\}', ticker, sql_stmt))
-		req_data['format']       = 'json'
-		req_data['diagnostics']  = 'false'
-		req_data['env']          = 'store://datatables.org/alltableswithkeys'
-		req_data['callback']     = ''
-		self.yql_endpoint = 'https://query.yahooapis.com/v1/public/yql?' + urllib.urlencode(req_data)
-		self.refresh_data()
-
-	def make_yql_request(self):
-		try:
-			return json.load(urllib2.urlopen(self.yql_endpoint))
-		except urllib2.HTTPError, e:
-			print "HTTPError = " + str(e.code)
-		except urllib2.URLError, e:
-			print "URLError = " + str(e.reason)
-		except httplib.HTTPException, e:
-			print "HTTPException"
-		except Exception:
-			print "Unknown exception"
-		return None
-
-	def refresh_data(self):
-		response = self.make_yql_request()
-		if response is None: 
-			quote = None 
-		else:
-			quote = response['query']['results']['quote']
-		
-		for key in self.stock_data:
-			if key == 'Ticker': 
-				continue
-			if not quote is None: 
-				self.stock_data[key] = quote[key]
+            if not (self.data['Name']):
+                self.data['Name'] = str(re.search(r'(?<=: Summary for ).*(?=-)',
+                    str(re.search(r'(?<=<title>).*(?=<\/title>)', response).group())).group())
 
 
 
-class TickerStock(Scraper_Stock, YQL_Stock):
-	name           = ""
-	ticker         = ""
-	value          = 0.0
-	previous_close = 0.0
-	open_price     = 0.0
+class YQL_Stock(Stock):
+    def __init__(self, ticker, *fields):
+        self.data = {}
+        for f in range(0, len(fields)):
+            self.data[fields[f]] = None
+        sql_stmt     = "SELECT %s FROM %s WHERE symbol=\"%s\""
+        field_string = ", ".join(fields)
+        table        = "yahoo.finance.quotes"
 
-	def __init__(self, ticker):
-		self.ticker = ticker
-		fields = ['PreviousClose', 'Open']
-		super(TickerStock, self).setup(ticker)
-		super(TickerStock, self).yql_setup(fields, ticker)
+        super(YQL_Stock, self).__init__(
+            "https://query.yahooapis.com/v1/public/yql",
+            q           = sql_stmt % (field_string, table, ticker),
+            format      = "json",
+            diagnostics = "false",
+            env         = "store://datatables.org/alltableswithkeys",
+            callback    = "" )
+        self.refresh_data()
 
-	def refresh_value(self):
-		super(TickerStock, self).refresh_value()
-		if not (self.name):
-			self.name = self.scraped_data['Name']
-		self.value = self.scraped_data['Value']
 
-	def refresh_data(self):
-		super(TickerStock, self).refresh_data()
-		if not self.stock_data['PreviousClose'] is None:
-			self.previous_close = float(self.stock_data['PreviousClose'])
-		if not  self.stock_data['Open'] is None:
-			self.open_price     = float(self.stock_data['Open'])
+    def refresh_data(self):
+        resp = super(YQL_Stock, self).make_request()
+        if not resp is None: 
+            response = json.loads(resp.read().decode("utf8"))
+            for key in self.data:
+                self.data[key] = response['query']['results']['quote'][key]
 
-	def get_name_string(self):
-		if (self.name):
-			return self.name + ' (' + self.ticker + ')'
-		return self.ticker
 
-	def get_value_string(self):
-		if (self.value):
-			if (self.previous_close):
-				if (self.value > self.previous_close):
-					dir_string = "\x1E"
-				elif (self.value < self.previous_close):
-					dir_string = "\x1F"
-				else:
-					dir_string = "\xFE"
-				percent = ((self.value - self.previous_close)/self.previous_close)*100
-				percent_string = '%.3f' % percent
-			else:
-				dir_string = "\xF9"
-				percent_string = "--.---"
-			value_string = '%.2f' % self.value
-			space = " "
-			for x in range(0, 7-len(value_string)):
-					space += " "
-			return "" + value_string + space + dir_string + " " + percent_string + " %"
-		return "" + "N/A"
 
+class TickerStock(object):
+    def __init__(self, ticker):
+        self.ticker = ticker
+        self.scraper = Scraper_Stock(ticker)
+        self.yql     = YQL_Stock(ticker, 'PreviousClose', 'Open')
+
+
+    def get_name_string(self):
+        name = self.scraper.data['Name']
+        if (name):
+            return name + ' (' + self.ticker + ')'
+        return self.ticker
+
+
+    def get_value_string(self):
+        value   = self.scraper.data['Value']
+        p_close = float(self.yql.data['PreviousClose'])
+        if (value):
+            if (p_close):
+                if (value > p_close):
+                    dir_string = "\x1E" 
+                elif (value < p_close):
+                    dir_string = "\x1F"
+                else:
+                    dir_string = "\xFE"
+                percent = ((value - p_close)/p_close)*100
+                percent_string = '%.3f' % percent
+            else:
+                dir_string = "\xF9"
+                percent_string = "--.---"
+            value_string = '%.2f' % value
+            space = " "
+            for x in range(0, 7-len(value_string)):
+                    space += " "
+            return "" + value_string + space + dir_string + " " + percent_string + " %"
+        return "" + "N/A"
