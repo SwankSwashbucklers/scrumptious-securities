@@ -98,15 +98,15 @@ class TickerStock(object):
         if (value):
             if (p_close):
                 if (value > p_close):
-                    dir_string = "\x1E" 
+                    dir_string = "▲" 
                 elif (value < p_close):
-                    dir_string = "\x1F"
+                    dir_string = "▼"
                 else:
-                    dir_string = "\xFE"
+                    dir_string = "■"
                 percent = ((value - p_close)/p_close)*100
                 percent_string = '%.3f' % percent
             else:
-                dir_string = "\xF9"
+                dir_string = "▬"
                 percent_string = "--.---"
             value_string = '%.2f' % value
             space = " "
