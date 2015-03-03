@@ -3,6 +3,7 @@ import urllib.request     #
 import urllib.error       #
 import re                 # Scraper_Stock
 import json               # YQL_Stock
+import os                 # TickerStock
 
 class Stock(object):
     def __init__(self, url, **data):
@@ -87,9 +88,7 @@ class TickerStock(object):
 
     def get_name_string(self):
         name = self.scraper.data['Name']
-        if (name):
-            return name + ' (' + self.ticker + ')'
-        return self.ticker
+        return self.ticker if not (name) else name + ' (' + self.ticker + ')'
 
 
     def get_value_string(self):
@@ -98,15 +97,15 @@ class TickerStock(object):
         if (value):
             if (p_close):
                 if (value > p_close):
-                    dir_string = "▲" 
+                    dir_string = "\x1E" if os.name == 'nt' else "▲" 
                 elif (value < p_close):
-                    dir_string = "▼"
+                    dir_string = "\x1F" if os.name == 'nt' else "▼"
                 else:
-                    dir_string = "■"
+                    dir_string = "\x3D" if os.name == 'nt' else "■"
                 percent = ((value - p_close)/p_close)*100
                 percent_string = '%.3f' % percent
             else:
-                dir_string = "▬"
+                dir_string = "\x16" if os.name == 'nt' else "▬"
                 percent_string = "--.---"
             value_string = '%.2f' % value
             space = " "
