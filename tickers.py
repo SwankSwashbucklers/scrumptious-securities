@@ -6,9 +6,9 @@ MAX_LENGTH   = 80
 H_BUFFER     = 5
 V_BUFFER     = 3
 REFRESH_RATE = 10
-WATCHLIST    = ['TSLA', 'AAPL', 'GOOGL', 'GOOG', 'OMCL', 'ERII', 'SCTY']
-#WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG', 'AAPL', 'OMCL', 'AAL', 'LUV', 'GPRO', 'ERII', 
-#				'AMZN', 'NFLX', 'MA', 'GM', 'F', 'HMC', 'HEMP', 'PHOT']
+#WATCHLIST    = ['TSLA', 'AAPL', 'GOOGL', 'GOOG', 'OMCL', 'ERII', 'SCTY']
+WATCHLIST    = ['TSLA', 'GOOGL', 'GOOG', 'AAPL', 'OMCL', 'AAL', 'LUV', 'GPRO', 'ERII', 
+				'AMZN', 'NFLX', 'MA', 'GM', 'F', 'HMC', 'HEMP', 'PHOT']
 
 
 def signal_handler(signal, frame):

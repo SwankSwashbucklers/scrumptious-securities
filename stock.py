@@ -35,19 +35,21 @@ class Scraper_Stock(Stock):
         self.refresh_data()
 
 
-    def refresh_data(self): #TODO: add checking if regex cant find match
+    def refresh_data(self):
         resp = super(Scraper_Stock, self).make_request()
         if not resp is None:
             response = str(resp.read())
             
-            self.data['Value'] = float(
-                str(re.search(r'[0-9\.]*$', 
-                str(re.search(r'<span[\w\s="]*class="time_rtq_ticker[\w\s="]*><span[\w\s="]*>[\w\s\.]*', 
-                    response).group())).group()))
+            value_regex = re.compile(r'<[^<]*span[^<^>]*class="[^"]*time_rtq_ticker[^"]*"[^>]*><[^<]*span[^>]*>([0-9.]*)')
+            match = value_regex.search(response)
+            if not match is None: # log that regex didnt match when you get around to logging
+                self.data['Value'] = float(match.group(1).strip())
 
             if not (self.data['Name']):
-                self.data['Name'] = str(re.search(r'(?<=: Summary for ).*(?=-)',
-                    str(re.search(r'(?<=<title>).*(?=<\/title>)', response).group())).group())
+                name_regex = re.compile(r'<[^<]*div[^<^>]*class="[^"]*title[^"]*"[^>]*><[^<]*h2[^>]*>([^<]*)')
+                match = name_regex.search(response)
+                if not match is None: # log that regex didnt match when you get around to logging
+                    self.data['Name'] = match.group(1).strip()
 
 
 
@@ -87,8 +89,7 @@ class TickerStock(object):
 
 
     def get_name_string(self):
-        name = self.scraper.data['Name']
-        return self.ticker if not (name) else name + ' (' + self.ticker + ')'
+        return self.ticker if not (self.scraper.data['Name']) else self.scraper.data['Name']
 
 
     def get_value_string(self):
