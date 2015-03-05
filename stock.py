@@ -40,13 +40,13 @@ class Scraper_Stock(Stock):
         if not resp is None:
             response = str(resp.read())
             
-            re_value = re.compile(r'<[^<]*span[^<^>]*class="[^"]*time_rtq_ticker[^"]*"[^>]*><[^<]*span[^>]*>([0-9.]*)')
+            re_value = re.compile(r'<\s?span[^>]*class="[^"]*time_rtq_ticker[^"]*"[^>]*><\s?span[^>]*>([0-9.]*)')
             match = re_value.search(response)
             if not match is None: # log that regex didnt match when you get around to logging
                 self.data['Value'] = float(match.group(1).strip())
 
             if not (self.data['Name']):
-                re_name = re.compile(r'<[^<]*div[^<^>]*class="[^"]*title[^"]*"[^>]*><[^<]*h2[^>]*>([^<]*)')
+                re_name = re.compile(r'<\s?div[^>]*class="[^"]*title[^"]*"[^>]*><\s?h2[^>]*>([^<]*)')
                 match = re_name.search(response)
                 if not match is None: # log that regex didnt match when you get around to logging
                     self.data['Name'] = match.group(1).strip()
